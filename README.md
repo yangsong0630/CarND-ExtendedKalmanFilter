@@ -40,7 +40,7 @@ The source code files can be found in the src folder at root level of the Git re
 
 An illustration of the data flow for sensor measurement processing is shown below. All sensor measurements are packaged by main.cpp, and passed to FusionEKF::ProcessMeasurement() method, which implemented the workflow:
 
-<img src="images/EKF General Flow.png" alt="General Flow of Extended Kalman Filter" />
+<p align="center"><img src="images/EKF General Flow.png" alt="General Flow of Extended Kalman Filter" width="500"/></p>
 
 ### Input Data ###
 For each sensor measurement, the following attributes are provided:
@@ -60,22 +60,22 @@ For each sensor measurement, the following attributes are provided:
 ###Predition###
 The difference in timestamps between two consecutive measurements, delta_t is used to update transition matrix F and process noise covariance matrix Q. With updated F and Q, state prediction can be obtained by using the formula below:
 
-<img src="images/Prediction.png" alt="Prediction" />
+<p align="center"><img src="images/Prediction.png" alt="Prediction" /></p>
 
 ###Update###
 For laser measurement, the raw measurement in each measurement package contains position coordinates px and py, and is passed to method KalmanFilter::Update(). For radar measurement, it is represented in polar coordinates of range, bearing, and range rate, and is passed to method KalmanFilter::UpdateEKF(). Both methods calculate the updated states using the formulas below, with different inputs y, H, and R:
 
-<img src="images/Lidar Update.png" alt="Measurement Update" />
+<p align="center"><img src="images/Lidar Update.png" alt="Measurement Update" /></p>.
 
 In measurement update for laser sensor, the 4D predicted state vector is mapped to the 2D measurement space of lidar sensor, $y = z - Hx'$. 
 
 In measurement update for radar sensor, the prediction error y is calculated by mapping predicted state vector from cartesian to polar coordinates, then subtract the result from radar measurement: y = z - h(x'), where 
 
-<img src="images/hx for radar.png" alt="Measurement Update for Radar" />
+<p align="center"><img src="images/hx for radar.png" alt="Measurement Update for Radar" /></p>
 
 Moreover, the H matrix for radar measurement update is the Jacobian matrix, as first order Taylor expansion is used to approximate the nonlinear function h(x).
 
-<img src="images/Hj.png" alt="Jacobian Matrix for Radar Measurement Update" />
+<p align="center"><img src="images/Hj.png" alt="Jacobian Matrix for Radar Measurement Update" width="500"/></p>
 
 After the ProcessMeasurement method returns, the estimated values and actual values of position and velocity are used to calculate RMSE values as measurement of the Kalman Filter performance. The estimated position and RMSE values are sent back to the simulater to be displayed.
 
@@ -83,8 +83,8 @@ After the ProcessMeasurement method returns, the estimated values and actual val
 
 With both Laser and Radar sensor measurements included, the resulted plots and RMSE values for given datasets are as below:
 
-<img src="images/Dataset 1 LR.png" alt="RMSE for Dataset 1 Lidar and Radar" />
-<img src="images/Dataset 2 LR.png" alt="RMSE for Dataset 2 Lidar and Radar" />
+<p align="center"><img src="images/Dataset 1 LR.png" alt="RMSE for Dataset 1 Lidar and Radar" width="500" height="300"/></p>
+<p align="center"><img src="images/Dataset 2 LR.png" alt="RMSE for Dataset 2 Lidar and Radar" width="500" height="300"/></p>
 
 Additionally, experimenting has been done by using only measurement of one sensor type, and the RMSE values indicated that the performance of Extended Kalman Filter were better when measurements from both sensor types were used. 
 
