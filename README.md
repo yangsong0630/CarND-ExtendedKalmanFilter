@@ -57,32 +57,15 @@ For each sensor measurement, the following attributes are provided:
 
 The difference between two consecutive measurements, $\Delta$t is used to update transition matrix F and process noise covariance matrix Q. With updated F and Q, state prediction can be obtained by using the formula below:
 
-![Alt text](./images/Prediction.png?raw=true "Prediction")
+<img src="images/Prediction.png" alt="Prediction" />
 
 For laser measurement, the raw measurement in each measurement package contains position coordinates px and py, and is passed to method KalmanFilter::Update(). For radar measurement, it is represented in polar coordinates of range, bearing, and range rate, and is passed to method KalmanFilter::UpdateEKF(). Both methods calculate the updated states using the formulas below, with different inputs y, H, and R:
 
-![Alt text](./images/Lidar Update.png?raw=true "Measurement Update for Lidar")
+<img src="images/Lidar Update.png" alt="Measurement Update for Lidar" />
 
-\begin{equation*}
-  S = H P' H^T + R
-\end{equation*}
-\begin{equation*}
-  K = P' H^T S^{-1}
-\end{equation*}
-\begin{equation*}
-  x = x' + K y
-\end{equation*}
-\begin{equation*}
-  P = (I - K H) P'
-\end{equation*}
+In measurement update for laser sensor, the 4D predicted state vector is mapped to the 2D measurement space of lidar sensor, $y = z - Hx'$. In measurement update for radar sensor, the prediction error y is calculated by mapping predicted state vector from cartesian to polar coordinates, then subtract the result from radar measurement: y = z - h(x'), where 
 
-In measurement update for laser sensor, the 4D predicted state vector is mapped to the 2D measurement space of lidar sensor, $y = z - Hx'$. In measurement update for radar sensor, the prediction error y is calculated by mapping predicted state vector from cartesian to polar coordinates, then subtract the result from radar measurement: 
-
-$y = z - h(x')$, 
-where 
-![Alt text](./images/hx for radar.png?raw=true "Measurement Update for Radar")
-
-$h(x') = \left(\begin{array}{cc} \sqrt{p'_{x}^2+p'_{y}^2} \\arctan(\frac{p'_y}{p'_x}) \\ \sqrt{px^2+py^2} \end{array} \right)$
+<img src="images/hx for radar.png" alt="Measurement Update for Radar" />
 
 The actual values of position and velocity are used to calculate RMSE values as measurement of the Kalman Filter performance.
 
