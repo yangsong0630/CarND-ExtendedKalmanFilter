@@ -40,9 +40,7 @@ The source code files can be found in the src folder at root level of the Git re
 
 An illustration of the data flow for sensor measurement processing is shown below:
 
-<figure>
- <img src="./images/EKF General Flow.png" width="380" alt= "General Flow of Extended Kalman Filter" />
-</figure>
+![Alt text](./images/EKF General Flow.png?raw=true "General Flow of Extended Kalman Filter")
 
 For each sensor measurement, the following attributes are provided:
 *Laser*
@@ -59,14 +57,11 @@ For each sensor measurement, the following attributes are provided:
 
 The difference between two consecutive measurements, $\Delta$t is used to update transition matrix F and process noise covariance matrix Q. With updated F and Q, state prediction can be obtained by using the formula below:
 
-\begin{equation*}
-  x' = F x
-\end{equation*}
-\begin{equation*}
-  P' = F P F^T + Q
-\end{equation*}
+![Alt text](./images/Prediction.png?raw=true "Prediction")
 
 For laser measurement, the raw measurement in each measurement package contains position coordinates px and py, and is passed to method KalmanFilter::Update(). For radar measurement, it is represented in polar coordinates of range, bearing, and range rate, and is passed to method KalmanFilter::UpdateEKF(). Both methods calculate the updated states using the formulas below, with different inputs y, H, and R:
+
+![Alt text](./images/Lidar Update.png?raw=true "Measurement Update for Lidar")
 
 \begin{equation*}
   S = H P' H^T + R
@@ -84,7 +79,10 @@ For laser measurement, the raw measurement in each measurement package contains 
 In measurement update for laser sensor, the 4D predicted state vector is mapped to the 2D measurement space of lidar sensor, $y = z - Hx'$. In measurement update for radar sensor, the prediction error y is calculated by mapping predicted state vector from cartesian to polar coordinates, then subtract the result from radar measurement: 
 
 $y = z - h(x')$, 
-where $h(x') = \left(\begin{array}{cc} \sqrt{p'_{x}^2+p'_{y}^2} \\arctan(\frac{p'_y}{p'_x}) \\ \sqrt{px^2+py^2} \end{array} \right)$
+where 
+![Alt text](./images/hx for radar.png?raw=true "Measurement Update for Radar")
+
+$h(x') = \left(\begin{array}{cc} \sqrt{p'_{x}^2+p'_{y}^2} \\arctan(\frac{p'_y}{p'_x}) \\ \sqrt{px^2+py^2} \end{array} \right)$
 
 The actual values of position and velocity are used to calculate RMSE values as measurement of the Kalman Filter performance.
 
