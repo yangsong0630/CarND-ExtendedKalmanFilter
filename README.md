@@ -38,11 +38,13 @@ The source code files can be found in the src folder at root level of the Git re
 
 ## Measurement Processing Workflow
 
-An illustration of the data flow for sensor measurement processing is shown below:
+An illustration of the data flow for sensor measurement processing is shown below. All sensor measurements are packaged by main.cpp, and passed to FusionEKF::ProcessMeasurement() method, which implemented the workflow:
 
-![Alt text](./images/EKF General Flow.png?raw=true "General Flow of Extended Kalman Filter")
+<img src="images/EKF General Flow.png" alt="General Flow of Extended Kalman Filter" />
 
+### Input Data ###
 For each sensor measurement, the following attributes are provided:
+
 *Laser*
 
 | type | px | py | timestamp | actual x | actual y | actual vx | actual vy | yaw  | yawrate |
@@ -51,74 +53,50 @@ For each sensor measurement, the following attributes are provided:
 
 *Radar*
 
-| type | $\rho$ | $\phi$ | $\dot{\rho}$ | timestamp | actual x | actual y | actual vx | actual vy | yaw  | yawrate |
+| type | rho | phi | rho dot | timestamp | actual x | actual y | actual vx | actual vy | yaw  | yawrate |
 |:---|---|---|---|---|---|---|---|---|---|---:|
 |R	|1.047505 |0.3892401 | 4.511325 |1477010443100000 | 1.379955 | 0.6006288 | 5.198979 | 0.01077814 | 	0.002073124	| 0.02763437 |
 
-The difference between two consecutive measurements, $\Delta$t is used to update transition matrix F and process noise covariance matrix Q. With updated F and Q, state prediction can be obtained by using the formula below:
+###Predition###
+The difference in timestamps between two consecutive measurements, delta_t is used to update transition matrix F and process noise covariance matrix Q. With updated F and Q, state prediction can be obtained by using the formula below:
 
 <img src="images/Prediction.png" alt="Prediction" />
 
+###Update###
 For laser measurement, the raw measurement in each measurement package contains position coordinates px and py, and is passed to method KalmanFilter::Update(). For radar measurement, it is represented in polar coordinates of range, bearing, and range rate, and is passed to method KalmanFilter::UpdateEKF(). Both methods calculate the updated states using the formulas below, with different inputs y, H, and R:
 
-<img src="images/Lidar Update.png" alt="Measurement Update for Lidar" />
+<img src="images/Lidar Update.png" alt="Measurement Update" />
 
-In measurement update for laser sensor, the 4D predicted state vector is mapped to the 2D measurement space of lidar sensor, $y = z - Hx'$. In measurement update for radar sensor, the prediction error y is calculated by mapping predicted state vector from cartesian to polar coordinates, then subtract the result from radar measurement: y = z - h(x'), where 
+In measurement update for laser sensor, the 4D predicted state vector is mapped to the 2D measurement space of lidar sensor, $y = z - Hx'$. 
+
+In measurement update for radar sensor, the prediction error y is calculated by mapping predicted state vector from cartesian to polar coordinates, then subtract the result from radar measurement: y = z - h(x'), where 
 
 <img src="images/hx for radar.png" alt="Measurement Update for Radar" />
 
-The actual values of position and velocity are used to calculate RMSE values as measurement of the Kalman Filter performance.
+Moreover, the H matrix for radar measurement update is the Jacobian matrix, as first order Taylor expansion is used to approximate the nonlinear function h(x).
 
+<img src="images/Hj.png" alt="Jacobian Matrix for Radar Measurement Update" />
 
+After the ProcessMeasurement method returns, the estimated values and actual values of position and velocity are used to calculate RMSE values as measurement of the Kalman Filter performance. The estimated position and RMSE values are sent back to the simulater to be displayed.
 
+## Results 
 
+With both Laser and Radar sensor measurements included, the resulted plots and RMSE values for given datasets are as below:
 
-INPUT: values provided by the simulator to the c++ program
+<img src="images/Dataset 1 LR.png" alt="RMSE for Dataset 1 Lidar and Radar" />
+<img src="images/Dataset 2 LR.png" alt="RMSE for Dataset 2 Lidar and Radar" />
 
-["sensor_measurement"] => the measurement that the simulator observed (either lidar or radar)
+Additionally, experimenting has been done by using only measurement of one sensor type, and the RMSE values indicated that the performance of Extended Kalman Filter were better when measurements from both sensor types were used. 
 
+| Dataset  | Sensor(s) | `RMSE X`  | `RMSE Y`  | `RMSE VX`  | `RMSE VY` |
+|----------|-----------|-----------|-----------|------------|-----------|
+| `1`      | `L+R`     | `0.0973`  | `0.0855`  | `0.4513`   | `0.4399`  |
+| `2`      | `L+R`     | `0.0726`  | `0.0967`  | `0.4579`   | `0.4966`  |
+| `1`      | `L`       | `0.1222`  | `0.0984`  | `0.5825`   | `0.4567`  |
+| `2`      | `L`       | `0.0959`  | `0.1005`  | `0.5422`   | `0.4649`  |
+| `1`      | `R`       | `0.1918`  | `0.2798`  | `0.5575`   | `0.6567`  |
+| `2`      | `R`       | `0.2244`  | `0.2954`  | `0.5870`   | `0.7338`  |
 
-OUTPUT: values provided by the c++ program to the simulator
-
-["estimate_x"] <= kalman filter estimated position x
-["estimate_y"] <= kalman filter estimated position y
-["rmse_x"]
-["rmse_y"]
-["rmse_vx"]
-["rmse_vy"]
-
----
-
-## Editor Settings
-
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
-
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
-
-## Code Style
-
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
-
-## Generating Additional Data
-
-This is optional!
-
-If you'd like to generate your own radar and lidar data, see the
-[utilities repo](https://github.com/udacity/CarND-Mercedes-SF-Utilities) for
-Matlab scripts that can generate additional data.
-
-## Project Instructions and Rubric
-
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
-
-More information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project resources page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/382ebfd6-1d55-4487-84a5-b6a5a4ba1e47)
-for instructions and the project rubric.
-
-
-
+## Additional Resources
+Matlab [scripts](https://github.com/udacity/CarND-Mercedes-SF-Utilities) are provided by the course for generating additional data.
 
